@@ -12,7 +12,7 @@ using std::vector;
  * This is scaffolding, do not modify
  */
 UKF::UKF() {
-  std::cout << "Constructor Start:" << '\n';
+  // std::cout << "Constructor Start:" << '\n';
 
   // if this is false, laser measurements will be ignored (except during init)
   use_laser_ = true;
@@ -30,7 +30,7 @@ UKF::UKF() {
   std_a_ = 3;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.4;
+  std_yawdd_ = 1;
 
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -73,8 +73,8 @@ UKF::UKF() {
     weights_(i + 1) = weights_others_;
     weights_(i + n_aug_ + 1) = weights_others_;
   }
-  std::cout << "weights =" << weights_.transpose() << '\n';
-  std::cout << "Constructor End" << '\n';
+  // std::cout << "weights =" << weights_.transpose() << '\n';
+  // std::cout << "Constructor End" << '\n';
 
 }
 
@@ -100,9 +100,9 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
      P_ = MatrixXd(5, 5);
      P_ << 1, 0, 0, 0, 0,
             0, 1, 0, 0, 0,
-            0, 0, 30, 0, 0,
-            0, 0, 0, 10, 0,
-            0, 0, 0, 0, 1;
+            0, 0, 10, 0, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 0, 0.2;
      if ((meas_package.sensor_type_ == MeasurementPackage::RADAR) && use_radar_)
      {
        /**
@@ -127,7 +127,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
        */
        x_(0) = meas_package.raw_measurements_(0);
        x_(1) = meas_package.raw_measurements_(1);
-       x_(3) = std::atan2(x_(1), x_(0));
        is_initialized_ = true;
      }
 
