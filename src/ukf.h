@@ -63,9 +63,15 @@ public:
 
   ///* Augmented state dimension
   int n_aug_;
+  
+  ///* 2 * n_aug_ + 1
+  int n_aug_sig_;
 
   ///* Sigma point spreading parameter
   double lambda_;
+
+  ///* previous_timestamp_
+  double previous_timestamp_;
 
 
   /**
