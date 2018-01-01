@@ -117,7 +117,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
        x_(0) = rho_ * cos_theta_;
        x_(1) = rho_ * sin_theta_;
        x_(2) = rho_dot_;
-       x_(3) = std::atan2(x_(1), x_(0));
+       x_(3) = 0;
        is_initialized_ = true;
      }
      else if ((meas_package.sensor_type_ == MeasurementPackage::LASER) && use_laser_)
@@ -186,15 +186,15 @@ void UKF::Prediction(double delta_t)
 
   MatrixXd P_aug_ = MatrixXd::Zero(n_aug_, n_aug_);
 
-  P_aug_.topLeftCorner(5, 5)  = P_;
-  P_aug_(5, 5) = std_a_ * std_a_;
-  P_aug_(6, 6) = std_yawdd_ * std_yawdd_;
+  P_aug_.topLeftCorner(n_x_, n_x_)  = P_;
+  P_aug_(n_x_, n_x_) = std_a_ * std_a_;
+  P_aug_(n_x_ + 1, n_x_ + 1) = std_yawdd_ * std_yawdd_;
   // std::cout << "P_aug =" << P_aug_ << '\n';
 
 
   VectorXd x_aug = VectorXd(n_aug_);
-  x_aug.head(5) = x_;
-  for (int i = 5; i < n_aug_; i++)
+  x_aug.head(n_x_) = x_;
+  for (int i = n_x_; i < n_aug_; i++)
   {
     x_aug(i) = 0;
   }
@@ -341,8 +341,17 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   {
     double rho = std::sqrt(Xsig_pred_(0, i) * Xsig_pred_(0, i) + Xsig_pred_(1, i) * Xsig_pred_(1, i));
     Zsig_(0, i) = rho;
-    Zsig_(1, i) = std::atan2(Xsig_pred_(1, i), Xsig_pred_(0, i));
-    Zsig_(2, i) = (Xsig_pred_(0, i) * Xsig_pred_(2, i) * std::cos(Xsig_pred_(3, i)) + Xsig_pred_(1, i) * Xsig_pred_(2, i) * std::sin(Xsig_pred_(3, i))) / rho;
+    if (fabs(rho) > 0.001)
+    {
+      Zsig_(1, i) = std::atan2(Xsig_pred_(1, i), Xsig_pred_(0, i));
+      Zsig_(2, i) = (Xsig_pred_(0, i) * Xsig_pred_(2, i) * std::cos(Xsig_pred_(3, i)) + Xsig_pred_(1, i) * Xsig_pred_(2, i) * std::sin(Xsig_pred_(3, i))) / rho;
+    }
+    else
+    {
+      Zsig_(1, i) = 0;
+      Zsig_(2, i) = (i > 0)? Zsig_(2, i - 1): 0;
+    }
+
   }
 
   // std::cout << "Zsig = " << "\n";
